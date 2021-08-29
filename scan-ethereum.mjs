@@ -67,7 +67,10 @@ async function scanBlock(opts, api, moduleMetadata, admin, web3, contract, block
                 // the existence of `event.transactionHash` in Parami chain.
                 txInParami = await api.query.bridge.erc20Txs(event.transactionHash);
                 if (txInParami.isNone) {
+                    console.log( event.returnValues.from,  event.returnValues.to,event.returnValues.value);
                     [a, b] = waitTx(moduleMetadata);
+                    console.log(a,b)
+
                     await api.tx.bridge.redeem(
                         event.transactionHash,
                         event.returnValues.from,

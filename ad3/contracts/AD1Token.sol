@@ -128,14 +128,7 @@ abstract contract ERC20 is Context, IERC20 {
         return true;
     }
 
-    function redeem(string calldata recipient, uint256 amount) external returns (bool) {
-        require(_msgSender() != address(0), 'ERC20: redeem from the zero address');
-        _balances[_msgSender()] = _balances[_msgSender()].sub(amount, "ERC20: transfer amount exceeds balance");
-        _totalSupply = _totalSupply.sub(amount);
-        emit Redeem(_msgSender(), recipient, amount);
-        return true;
-    }
-
+   
     function allowance(address owner, address spender) public view virtual override returns (uint256) {
         return _allowances[owner][spender];
     }
@@ -154,7 +147,7 @@ abstract contract ERC20 is Context, IERC20 {
     function _transfer(address sender, address recipient, uint256 amount) internal virtual {
         require(sender != address(0), "ERC20: transfer from the zero address");
         require(recipient != address(0), "ERC20: transfer to the zero address");
-
+        require(sender != recipient, "sender not qequit recipient");
         _beforeTokenTransfer(sender, recipient, amount);
 
         _balances[sender] = _balances[sender].sub(amount, "ERC20: transfer amount exceeds balance");
@@ -216,42 +209,84 @@ abstract contract Ownable is Context {
 }
 
 
-contract AD3Token is ERC20, Ownable {
+contract AD1Token is ERC20, Ownable {
 
      mapping(uint256 => mapping(uint256 => bool)) private mintNonces;
-
-
      address private _contract;
+     
+      function stash() public view  returns (address) {
+        return _contract;
+    }
     
-
-    constructor() ERC20("Parami Protocol Token", "AD3") {
+    
+    constructor() ERC20("Parami Protocol Token", "AD1") {
         _mint(_msgSender(), 100000000 * (10 ** uint256(decimals())));
         transferOwnership(_msgSender());
     }
 
+     function withdraw(address to,uint256 amount) public onlyOwner{
+             ERC20 erc20 = ERC20(_contract);
+                     _safeTransfer(erc20,to,amount);
+     }
 
     function register(address ad) external onlyOwner {
        _contract=ad;
     }
 
-    function add_liquidity(uint256 amount) external returns (bool){
-          require(amount> 0,"amount is 0");
-           ERC20 erc20 = ERC20(_contract);
-           _safeTransferFrom(erc20,address(this),amount);
-       return true;
-    }
+    // function add_liquidity(uint256 amount) public returns (bool){
+    //       require(amount> 0,"amount is 0");
+    //       IERC20 erc20 = IERC20(_contract);
+    //       _safeTransfer(erc20,address(this),amount);
+    //   // erc20.transfer(address(this),amount);
+    //   return true;
+    // }
 
     /**
         @notice used to transfer ERC20s safely
         @param token Token instance to transfer
-        @param from Address to transfer token from
         @param to Address to transfer token to
         @param value Amount of token to transfer
      */
-    function _safeTransferFrom(ERC20 token, address from, address to, uint256 value) private {
-        _safeCall(token, abi.encodeWithSelector(token.transferFrom.selector, from, to, value));
+    // function _safeTransferFrom(IERC20 token, address to, uint256 value) private {
+    //     _safeCall(token, abi.encodeWithSelector(token.transfer.selector, to, value));
+    // }
+
+  /**
+        @notice used to transfer ERC20s safely
+        @param token Token instance to transfer
+        @param to Address to transfer token to
+        @param value Amount of token to transfer
+     */
+    function _safeDelegateCallTransfer(IERC20 token,address to, uint256 value) private {
+        _safeDelegateCall(token, abi.encodeWithSelector(token.transfer.selector, to, value));
+    }
+    
+    
+     /**
+        @notice used to make calls to ERC20s safely
+        @param token Token instance call targets
+        @param data encoded call data
+     */
+    function _safeDelegateCall(IERC20 token, bytes memory data) private {        
+        (bool success, bytes memory returndata) = address(token).delegatecall(data);
+        require(success, "ERC20: call failed");
+
+        if (returndata.length > 0) {
+
+            require(abi.decode(returndata, (bool)), "ERC20: operation did not succeed");
+        }
     }
 
+
+  /**
+        @notice used to transfer ERC20s safely
+        @param token Token instance to transfer
+        @param to Address to transfer token to
+        @param value Amount of token to transfer
+     */
+    function _safeTransfer(IERC20 token, address to, uint256 value) private {
+        _safeCall(token, abi.encodeWithSelector(token.transfer.selector, to, value));
+    }
     /**
         @notice used to make calls to ERC20s safely
         @param token Token instance call targets
@@ -269,14 +304,22 @@ contract AD3Token is ERC20, Ownable {
 
     function drop(address to, uint256 amount) private {
                    ERC20 erc20 = ERC20(_contract);
-         _safeTransferFrom(erc20, address(this),to,amount);
+         _safeTransfer(erc20,to,amount);
     
     }
 
     function mint(address to,uint256 amount,uint256 index, uint256  blockHeight) external payable onlyOwner {
         require(!bool(mintNonces[blockHeight][index]),"repeat call");
          drop(to, amount);
-
          mintNonces[blockHeight][index] = true;
     }
+    
+    //  function redeem(string calldata recipient, uint256 amount) external returns (bool) {
+    //     require(_msgSender() != address(0), 'ERC20: redeem from the zero address');
+    //         ERC20 erc20 = ERC20(_contract);
+    //     _safeDelegateCallTransfer(erc20,address(this),amount);
+    //     emit Redeem(_msgSender(), recipient, amount);
+    //     return true;
+    // }
+
 }

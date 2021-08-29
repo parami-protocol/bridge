@@ -80,9 +80,31 @@ export async function getApi(dest) {
 	const provider = new WsProvider(dest);
 
 	const types = {
+		"SwapPair": {
+			"account": "AccountId",
+			"nativeReserve": "Balance",
+			"assetReserve": "TAssetBalance"
+		},
+		"TAssetBalance": "u128",
+		"TagCoefficient": "u8",
+		"TagType": "u8",
+		"TagScore": "i8",
+		"Public": "MultiSigner",
+		"AdvertiserOf": "Advertiser",
+		"AdvertisementOf": "Advertisement",
+		"AdvertiserId": "GlobalId",
+		"DepositNonce": "u64",
+		"DidMethodSpecId": "[u8; 20]",
+		"GlobalId": "u64",
+		"NativeBalance": "Balance",
+		"SwapAssetBalance": "TAssetBalance",
+		"AdId": "GlobalId",
 		"Address": "MultiAddress",
 		"LookupSource": "MultiAddress",
 		"Did":"Vec<u8>",
+		"ChainId": "u32",
+		"TAssetBalance": "u128",
+
 		"ExternalAddress":{
 			"btc":"Vec<u8>",
 			"eth":"Vec<u8>",
