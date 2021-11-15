@@ -70,7 +70,7 @@ contract AD3Token is Ownable {
      *
      * Initializes contract with initial supply tokens to the creator of the contract
      */
-    constructor() public {
+    constructor() {
         totalSupply = initialSupply * 10 ** uint256(decimals);  // Update total supply with the decimal amount
         balanceOf[msg.sender] = totalSupply;                // Give the creator all initial tokens
         name = "Parami Protocol Token";                                   // Set the name for display purposes

@@ -217,66 +217,9 @@ abstract contract Ownable is Context {
 
 
 contract AD3Token is ERC20, Ownable {
-
-     mapping(uint256 => mapping(uint256 => bool)) private mintNonces;
-
-
-     address private _contract;
     
-
     constructor() ERC20("Parami Protocol Token", "AD3") {
         _mint(_msgSender(), 100000000 * (10 ** uint256(decimals())));
         transferOwnership(_msgSender());
-    }
-
-
-    function register(address ad) external onlyOwner {
-       _contract=ad;
-    }
-
-    function add_liquidity(uint256 amount) external returns (bool){
-          require(amount> 0,"amount is 0");
-           ERC20 erc20 = ERC20(_contract);
-           _safeTransferFrom(erc20,address(this),amount);
-       return true;
-    }
-
-    /**
-        @notice used to transfer ERC20s safely
-        @param token Token instance to transfer
-        @param from Address to transfer token from
-        @param to Address to transfer token to
-        @param value Amount of token to transfer
-     */
-    function _safeTransferFrom(ERC20 token, address from, address to, uint256 value) private {
-        _safeCall(token, abi.encodeWithSelector(token.transferFrom.selector, from, to, value));
-    }
-
-    /**
-        @notice used to make calls to ERC20s safely
-        @param token Token instance call targets
-        @param data encoded call data
-     */
-    function _safeCall(IERC20 token, bytes memory data) private {        
-        (bool success, bytes memory returndata) = address(token).call(data);
-        require(success, "ERC20: call failed");
-
-        if (returndata.length > 0) {
-
-            require(abi.decode(returndata, (bool)), "ERC20: operation did not succeed");
-        }
-    }
-
-    function drop(address to, uint256 amount) private {
-                   ERC20 erc20 = ERC20(_contract);
-         _safeTransferFrom(erc20, address(this),to,amount);
-    
-    }
-
-    function mint(address to,uint256 amount,uint256 index, uint256  blockHeight) external payable onlyOwner {
-        require(!bool(mintNonces[blockHeight][index]),"repeat call");
-         drop(to, amount);
-
-         mintNonces[blockHeight][index] = true;
     }
 }
